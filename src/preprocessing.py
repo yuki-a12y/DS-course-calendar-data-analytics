@@ -101,7 +101,7 @@ class Preprocessing:
         #座標はテンプレートの左上の位置になっているので、カレンダー画像の1番外側の座標にする
         vertices_list = [vertices_list[0],
                         [vertices_list[1][0] +template_one_edge_length, vertices_list[1][1]],
-                        [vertices_list[2][0], vertices_list[2][1] + template],
+                        [vertices_list[2][0], vertices_list[2][1] + template_one_edge_length],
                         [vertices_list[3][0] + template_one_edge_length, vertices_list[3][1] + template_one_edge_length]]
 
         return vertices_list
