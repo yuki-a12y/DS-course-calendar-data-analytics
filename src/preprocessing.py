@@ -56,7 +56,7 @@ class Preprocessing:
             plt.show()
 
     def resize_calendar_1200_900(self, calendar):
-        resized_calendar = cv2.resize(calendar, dsize=(1200, 900))
+        self.resized_calendar = cv2.resize(calendar, dsize=(1200, 900))
         return self.resized_calendar
 
     def detect_calendar_area(self, calendar, template_path):
