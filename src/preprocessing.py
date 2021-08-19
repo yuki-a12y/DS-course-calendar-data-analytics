@@ -16,8 +16,8 @@ class Preprocessing:
         calendar = self.ORIGINAL_CALENDAR
         calendar = self.resize_calendar_1200_900(calendar)
         calendar = self.detect_calendar_area(calendar, settings.TEMPLATE_PATH)
-        calendar = PreProcessForNN(calendar)
-        self.calendar_element_list = divide_calendar(calendar)
+        calendar = self.PreProcessForNN(calendar)
+        self.calendar_element_dict = self.divide_calendar(calendar)
 
         return self.calendar_element_dict
 
@@ -112,7 +112,11 @@ class Preprocessing:
         mat_i = cv2.getPerspectiveTransform(src_pts, dst_pts)
         return cv2.warpPerspective(calendar, mat_i, (1200, 900))
 
-def divide_calendar(self):
-    return None
-def PreProcessForNN(self):
-    return None
+    def PreProcessForNN(self, calendar):
+        return calendar
+
+    def divide_calendar(self, calendar):
+        return None
+
+    def divide_per_character(self):
+        return None
