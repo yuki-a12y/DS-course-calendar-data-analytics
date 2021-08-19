@@ -108,7 +108,7 @@ class Preprocessing:
 
     def homography_transform(self, calendar, vertices_list):
         src_pts = np.array(vertices_list, dtype=np.float32)
-        dst_pts = np.array([[0, 0], [calendar.shape[0], 0], [0, calendar.shape[1]], [calendar.shape[0], calendar.shape[1]]], dtype=np.float32)
+        dst_pts = np.array([[0, 0], [calendar.shape[1], 0], [0, calendar.shape[0]], [calendar.shape[1], calendar.shape[0]]], dtype=np.float32)
         mat_i = cv2.getPerspectiveTransform(src_pts, dst_pts)
         return cv2.warpPerspective(calendar, mat_i, (1200, 900))
 
