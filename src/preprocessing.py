@@ -14,7 +14,7 @@ class Preprocessing:
 
     def main(self):
         calendar = self.ORIGINAL_CALENDAR
-        calendar = self.resize_calendar_1200_900(calendar)
+        calendar = self.resize_calendar_1197_900(calendar)
         calendar = self.detect_calendar_area(calendar, settings.TEMPLATE_PATH)
         calendar = self.PreProcessForNN(calendar)
         self.calendar_element_dict = self.divide_calendar(calendar)
@@ -55,8 +55,8 @@ class Preprocessing:
             plt.gray()
             plt.show()
 
-    def resize_calendar_1200_900(self, calendar):
-        self.resized_calendar = cv2.resize(calendar, dsize=(1200, 900))
+    def resize_calendar_1197_900(self, calendar):
+        self.resized_calendar = cv2.resize(calendar, dsize=(1197, 900))
         return self.resized_calendar
 
     def detect_calendar_area(self, calendar, template_path):
