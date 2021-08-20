@@ -125,9 +125,18 @@ class Preprocessing:
         for i in range(5):
             for j in range(7):
                 day = calendar[185 + 137 * i:228 + 137 * i, 2 + 171 * j:163 + 171 * j]
-                self.calendar_element_dict[(i + 1) * (j + 1)] = day
+                self.calendar_element_dict[j + 1 + 7 * i] = day
 
         return self.calendar_element_dict
 
     def divide_per_character(self):
-        return None
+        for i in range(35):
+            day_array = cv2.threshold(self.calendar_element_dict, 128, 255, cv2.THRESH_OTSU)
+            brightness_0_list = self.create_brightness_0_list(day_array)  #輝度0のピクセルがある行の番号を抽出
+
+    def create_brightness_0_list(self, day_array) -> list:
+        where_arr = np.where(day_array == 0)[1]  #輝度が0の行、列の番号を抽出
+        where_list = list(where_arr)  #列のみを抽出し、リストに変換
+        brightness_0_list = list(set(where_list))  #重複するものを削除している、set型をリストに変換
+
+        return brightness_0_list
