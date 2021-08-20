@@ -115,8 +115,18 @@ class Preprocessing:
     def PreProcessForNN(self, calendar):
         return calendar
 
-    def divide_calendar(self, calendar):
-        return None
+    def divide_calendar(self, calendar) -> dict:
+        '''
+        (900, 1197)専用
+        '''
+        self.calendar_element_dict['year'] = calendar[50:90, 0:90]
+        self.calendar_element_dict['month'] = calendar[35:95, 570:630]
+        for i in range(5):
+            for j in range(7):
+                day = calendar[185 + 137 * i:228 + 137 * i, 2 + 171 * j:163 + 171 * j]
+                self.calendar_element_dict[(i + 1) * (j + 1)] = day
+
+        return self.calendar_element_dict
 
     def divide_per_character(self):
         return None
