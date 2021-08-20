@@ -16,7 +16,7 @@ class Preprocessing:
         calendar = self.ORIGINAL_CALENDAR
         calendar = self.resize_calendar_1197_900(calendar)
         calendar = self.detect_calendar_area(calendar, settings.TEMPLATE_PATH)
-        calendar = self.PreProcessForNN(calendar)
+        calendar = self.bgr_to_gray(calendar)
         self.calendar_element_dict = self.divide_calendar(calendar)
 
         return self.calendar_element_dict
