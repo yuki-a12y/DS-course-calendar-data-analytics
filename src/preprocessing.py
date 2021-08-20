@@ -112,7 +112,8 @@ class Preprocessing:
         mat_i = cv2.getPerspectiveTransform(src_pts, dst_pts)
         return cv2.warpPerspective(calendar, mat_i, (1200, 900))
 
-    def PreProcessForNN(self, calendar):
+    def bgr_to_gray(self, calendar):
+        calendar = cv2.cvtColor(calendar, cv2.COLOR_BGR2GRAY)
         return calendar
 
     def divide_calendar(self, calendar) -> dict:
