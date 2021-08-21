@@ -9,7 +9,7 @@ class Preprocessing:
         self.ORIGINAL_CALENDAR = original_calendar
         self.resized_calendar = None
         self.homography_transformed_calendar = None
-        self.preprocessed_calendar_for_nn = None
+        self.threshold_calendar = None
         self.calendar_element_dict = {}
 
     def main(self):
@@ -17,43 +17,11 @@ class Preprocessing:
         calendar = self.resize_calendar_1197_900(calendar)
         calendar = self.detect_calendar_area(calendar, settings.TEMPLATE_PATH)
         calendar = self.bgr_to_gray(calendar)
-        self.calendar_element_dict = self.divide_calendar(calendar)
+        calendar = self.adaptive_threshold(calendar)
+        self.divide_calendar(calendar)
+        self.divide_per_character()
 
         return self.calendar_element_dict
-
-    def visualize_intermediate_img(self):
-        print('original')
-        plt.imshow(self.ORIGINAL_CALENDAR)
-        plt.show()
-        print('----------------------')
-        print('resized')
-        plt.imshow(self.resize_calendar)
-        plt.show()
-        print('----------------------')
-        print('area detected')
-        plt.imshow(self.homography_transformed_calendar)
-        plt.show()
-        print('----------------------')
-        print('processed for NN')
-        plt.imshow(self.preprocessed_calendar_for_nn)
-        plt.show()
-        self.visualize_result_imgs
-
-    def visualize_result_imgs(self):
-        print('----------------------')
-        print('year')
-        plt.imshow(self.calendar_element_dict['year'])
-        plt.gray()
-        plt.show()
-        print('----------------------')
-        print('year')
-        plt.imshow(self.calendar_element_dict['month'])
-        plt.gray()
-        plt.show()
-        for element in self.calendar_element_dict['day']:
-            plt.imshow(element)
-            plt.gray()
-            plt.show()
 
     def resize_calendar_1197_900(self, calendar):
         self.resized_calendar = cv2.resize(calendar, dsize=(1197, 900))
@@ -116,6 +84,14 @@ class Preprocessing:
         calendar = cv2.cvtColor(calendar, cv2.COLOR_BGR2GRAY)
         return calendar
 
+    def threshold(self, calendar):
+        th, self.threshold_calendar = cv2.threshold(calendar, 128, 255, cv2.THRESH_OTSU)
+        return self.threshold_calendar
+
+    def adaptive_threshold(self, calendar):
+        self.threshold_calendar = cv2.adaptiveThreshold(calendar, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY, 101, 20)
+        return self.threshold_calendar
+
     def divide_calendar(self, calendar) -> dict:
         '''
         (900, 1197)専用
@@ -130,9 +106,43 @@ class Preprocessing:
         return self.calendar_element_dict
 
     def divide_per_character(self):
-        for i in range(35):
-            day_array = cv2.threshold(self.calendar_element_dict, 128, 255, cv2.THRESH_OTSU)
+        for day_num in range(35):
+            day_array = cv2.resize(self.calendar_element_dict[day_num + 1], (112, 28))  #リサイズ
             brightness_0_list = self.create_brightness_0_list(day_array)  #輝度0のピクセルがある行の番号を抽出
+            is_brightness_0_in_column = False
+            consecutive_column_first_list = []
+            consecutive_column_last_list = []
+            for i, b in enumerate(brightness_0_list):
+                if i != len(brightness_0_list) - 1:
+                    if b == brightness_0_list[i + 1] - 1:
+                        if is_brightness_0_in_column == False:
+                            consecutive_column_first_list.append(b)
+                            is_brightness_0_in_column = True
+                    else:
+                        if is_brightness_0_in_column == True:
+                            consecutive_column_last_list.append(b)
+                            is_brightness_0_in_column = False
+                else:
+                    if b == brightness_0_list[i - 1] + 1:
+                        consecutive_column_last_list.append(b)
+            #5文字以上になることはないので、5文字以上のときは、文字領域の小さいものを削除する→ノイズ除去
+            '''
+            if len(consecutive_column_first_list) >= 5:
+                len_consecutive_columns_list = []
+                for i in range(len(consecutive_column_first_list)):
+                    len_consecutive_columns_list.append(consecutive_column_last_list[i] - consecutive_column_first_list[i])
+                len_consecutive_columns_list.sort(reverse=True)
+                len_consecutive_columns_list = len_consecutive_columns_list[4]
+            '''
+            #日にちごとの画像を1文字ずつに分割し、day_characters_listに追加
+            day_characters_list = []
+            for c in range(len(consecutive_column_first_list)):
+                day_characters_list.append(day_array[:, consecutive_column_first_list[c]: consecutive_column_last_list[c] + 1])
+
+            #day_characters_listをself.calendar_element_dictに代入
+            self.calendar_element_dict[day_num] = day_characters_list
+
+        return self.calendar_element_dict
 
     def create_brightness_0_list(self, day_array) -> list:
         where_arr = np.where(day_array == 0)[1]  #輝度が0の行、列の番号を抽出
