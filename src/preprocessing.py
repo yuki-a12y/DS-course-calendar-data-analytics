@@ -109,6 +109,8 @@ class Preprocessing:
         for day_num in range(35):
             day_array = cv2.resize(self.calendar_element_dict[day_num + 1], (112, 28))  #リサイズ
             brightness_0_list = self.create_brightness_0_list(day_array)  #輝度0のピクセルがある行の番号を抽出
+            #分割に必要な文字の左端と右端の座標を求める→リストに格納する
+            #この方法なら1pxの領域は文字領域と判定されない
             is_brightness_0_in_column = False
             consecutive_column_first_list = []
             consecutive_column_last_list = []
@@ -134,10 +136,31 @@ class Preprocessing:
                 len_consecutive_columns_list.sort(reverse=True)
                 len_consecutive_columns_list = len_consecutive_columns_list[4]
             '''
-            #日にちごとの画像を1文字ずつに分割し、day_characters_listに追加
+            #日にちごとの画像を1文字ずつに分割し、day_characters_listに追加、また28*28になるように255パディング
             day_characters_list = []
             for c in range(len(consecutive_column_first_list)):
-                day_characters_list.append(day_array[:, consecutive_column_first_list[c]: consecutive_column_last_list[c] + 1])
+                one_of_day_characters = day_array[:, consecutive_column_first_list[c]: consecutive_column_last_list[c] + 1]
+                x_length = one_of_day_characters.shape[1]  #横の長さ
+                #横の長さが28以下の場合は255パディング
+                if x_length < 28:
+                    #横の長さが偶数の場合
+                    if x_length % 2 == 0:
+                        one_of_day_characters = np.pad(one_of_day_characters, [(0, 0), (int((28 - x_length) / 2), int((28 - x_length) / 2))], 'maximum')
+                        day_characters_list.append(one_of_day_characters)
+                    #横の長さが奇数の場合
+                    else:
+                        one_of_day_characters = np.pad(one_of_day_characters, [(0, 0), (int((28 - x_length) // 2 + 1), int((28 - x_length) // 2))], 'maximum')
+                        day_characters_list.append(one_of_day_characters)
+                #横の長さが28以上42以下のときは、(28, 28)にリサイズ
+                elif x_length > 28 and x_length < 42:
+                    one_of_day_characters = cv2.resize(one_of_day_characters, (28, 28))
+                    day_characters_list.append(one_of_day_characters)
+                #横の長さが28のときは、そのままリストに追加
+                elif x_length == 28:
+                    day_characters_list.append(one_of_day_characters)
+                #横の長さが42以上は異常なので追加しない
+                elif x_length >= 42:
+                    pass
 
             #day_characters_listをself.calendar_element_dictに代入
             self.calendar_element_dict[day_num] = day_characters_list
